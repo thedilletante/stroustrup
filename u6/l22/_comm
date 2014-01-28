@@ -1,0 +1,132 @@
+
+
+
+
+#include <iostream>
+#include <fstream>
+
+enum Token_value {
+  COMM = '/',   BLOCK = '*',    SINGLE = '/',
+  BQUOT = '"',  SQUOT = ''\',   SCREEN = '\\',
+  EOL = 'n\'
+};
+
+std::istream * input = 0;
+std::ostream * output = 0;
+
+void inPlain();
+void inCommentStart();
+void inSComm();
+void inScreen(bool print);
+void inBComm();
+bool inBEnd();
+void inBQuote();
+void inSQuote();
+
+int main(int argc, char* argv[]) {
+  switch(argc) {
+    case 3:
+      output = new std::ofstream(argv[2]);
+    case 2:
+      input = new std::ifstream(argv[1]);
+  }
+  if (input == 0) {
+    input = &std::cin;
+  }
+  if (output == 0) {
+    output = & std::cout;
+  }
+
+  inPlain();
+
+  if (input != &std::cin) delete input;
+  if (output != &std::cout) delete output;
+
+  "Comments /* in this string literal */ must remain";
+
+  return 0;
+}
+
+
+void inPlain() {
+  char ch;
+  while(input->get(ch)) {
+    switch(ch) {
+      case COMM: inCommentStart(); break;
+      case BQUOT: *output<<ch; inBQuote(); break;
+      case SQUOT: *output<<ch; inSQuote(); break;
+      default: *output<<ch;
+    }
+  }
+}
+
+
+void inCommentStart() {
+  char ch;
+  input->get(ch);
+  switch(ch) {
+    case SINGLE: inSComm(); break;
+    case BLOCK: inBComm(); break;
+    default: *output<<'/';
+  }
+}
+
+void inSComm() {
+  char ch;
+  while(input->get(ch)) {
+    switch(ch) {
+      case EOL: return;
+      case SCREEN: inScreen(false);
+    }
+  }
+}
+
+void inScreen(bool print) {
+  char ch;
+  input->get(ch);
+  if (print) *output<<ch;
+}
+
+void inBComm() {
+  char ch;
+  while(input->get(ch)) {
+    if (ch == BLOCK && inBEnd()) {
+      return;
+    }
+  }
+}
+
+
+bool inBEnd() {
+  char ch;
+  input->get(ch);
+  if (ch == COMM) {
+    return true;
+  }
+  if (ch == BLOCK) {
+    return inBEnd();
+  }
+  return false;
+}
+
+void inBQuote() {
+  char ch;
+  while(input->get(ch)) {
+    switch(ch) {
+      case BQUOT: *output<<ch; return;
+      case SCREEN: inScreen(true);
+      default: *output<<ch;
+    }
+  }
+}
+
+void inSQuote() {
+  char ch;
+  while(input->get(ch)) {
+    switch(ch) {
+      case SQUOT: *output<<ch; return;
+      case SCREEN: inScreen(true);
+      default: *output<<ch;
+    }
+  }
+}
