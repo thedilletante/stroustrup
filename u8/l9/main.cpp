@@ -6,12 +6,6 @@
 #include <vector>
 #include <cmath>
 
-
-
-
-// TODO
-// проверить вариант с определением функции - возвращается в неправильное состояние
-
 namespace Parser {
 
   double expr(bool get);
@@ -24,6 +18,27 @@ namespace Parser {
   double call_sys_func(const std::string& name, const std::string& args);
   void set_args(std::string& buf);
   void parse_args(size_t args_count, std::vector<double>& fact_args);
+
+  template<class T> // to automatic restore original value after exit from scope
+  class Restorer {
+  public:
+  	Restorer(T& obj) : origin(obj), tmp(obj) {}
+  	~Restorer() { origin = tmp; }
+  	void restore() { origin = tmp; }
+  private:
+  	T& origin;
+  	T tmp;
+  };
+
+  template<class T> // for auto delete objects after exit from scope
+  class Auto_ptr {
+  public:
+  	Auto_ptr(T* val) : obj(val) {}
+  	T* val() { return obj; }
+  	~Auto_ptr() { delete obj; } 
+  private:
+  	T* obj;
+  };
 }
 
 namespace Lexer {
@@ -64,7 +79,7 @@ namespace Lexer {
 namespace Driver {
 
   std::istream * input;
-  unsigned line_number;
+  unsigned line_number = 1;
 
   void skip();
 }
@@ -90,7 +105,6 @@ int main(int argc, char* argv[]) {
       Driver::input = &std::cin;
       break;
     case 2:
-      Driver::line_number = 1;
       Driver::input = new std::istringstream(argv[1]);
       break;
     default:
@@ -110,7 +124,7 @@ int main(int argc, char* argv[]) {
       Lexer::get_token();
       if (Lexer::curr_tok == Lexer::END) break;
       if (Lexer::curr_tok == Lexer::NAME 
-          && Lexer::cur_val.string_value == "exit") break;
+          && Lexer::cur_val.string_value == "quit") break;
       if (Lexer::curr_tok == Lexer::PRINT) continue;
       std::cout<<Parser::expr(false)<<'\n';
     }
@@ -126,6 +140,7 @@ int main(int argc, char* argv[]) {
       std::cerr << e.p << "\n";
       if (Lexer::curr_tok != Lexer::PRINT) Driver::skip();
     }
+    ++Driver::line_number;
   }
 
   if (Driver::input != &std::cin) delete Driver::input;
@@ -198,7 +213,7 @@ double Parser::function() {
   std::string name = Lexer::cur_val.string_value;
   std::string args;
   set_args(args);
-  double result;
+  double result = 0.0;
   Lexer::Token_value tmp;
   switch (tmp = Lexer::get_token()) {
   	case Lexer::ASSIGN:
@@ -232,7 +247,7 @@ void Parser::set_args(std::string& buf){
 				--cnt;
 				break;
 			case Lexer::PRINT:
-				throw Error::Syntax_error("RP expected");
+				throw Error::Syntax_error(") expected");
 		}
 		if (cnt == 0)
 			break;
@@ -245,35 +260,34 @@ void Parser::def_func(const std::string& name, const std::string& args) {
 	std::vector<std::string> arg_list;
 	std::string body;
 
-	std::istream * arguments = new std::stringstream(args);
-	std::istream * tmp = Driver::input;
-	Driver::input = arguments;
+	Auto_ptr<std::istream> arguments(new std::stringstream(args));
+	Restorer<std::istream*> rest(Driver::input);
+	Driver::input = arguments.val();
 
 	while(*Driver::input) {
 		if (Lexer::get_token() != Lexer::NAME) {
-      throw Error::Syntax_error("arguments must be a string value");
+      		throw Error::Syntax_error("arguments must be a string value");
 		}
 		arg_list.push_back(Lexer::cur_val.string_value);
 		Lexer::Token_value v = Lexer::get_token();
 		if (v != Lexer::ARG_SEP && v != Lexer::END) {
-      throw Error::Syntax_error("arguments must devides by comma");
+      		throw Error::Syntax_error("arguments must devides by comma");
 		}
 	}
 
-	Driver::input = tmp;
-	delete arguments;
-
-  char ch;
+	rest.restore();
+  	char ch;
 	while(Driver::input->get(ch) && (ch != Lexer::PRINT && ch != '\n')) {
 		body.push_back(ch);
 	}
+	Lexer::curr_tok = Lexer::PRINT;
 
 	if (body.empty()) {
 		throw Error::Syntax_error("body of function empty");
 	}
 	else {
 		Lexer::user_funcs[name] = Lexer::user_func_t( arg_list, body );
-    throw Lexer::Function_notify("function " + name + " defined");
+    	throw Lexer::Function_notify("function " + name + " defined");
 	}
 }
 
@@ -281,35 +295,21 @@ double Parser::call_user_func(const std::string& func_name, const std::string& f
   Lexer::user_func_t function = Lexer::user_funcs[ func_name ];
 
   std::vector<std::string> args = function.first;
-  std::istream * body = new std::stringstream(function.second);
-  std::istream * arg_list = new std::stringstream(fact_args);
+  Auto_ptr<std::istream> body(new std::stringstream(function.second));
+  Auto_ptr<std::istream> arg_list(new std::stringstream(fact_args));
+  Restorer<std::istream*> rest(Driver::input);
+  Restorer<std::map<std::string, double> > table_rest(Lexer::table);
 
-  std::map<std::string, double> tmp_table = Lexer::table;
-
-  std::istream * tmp_input = Driver::input;
-  Driver::input = arg_list;
+  Driver::input = arg_list.val();
   Lexer::curr_tok = Lexer::END;
   std::vector<double> arguments;
   double result = 0;
-  try {
-    parse_args(args.size(), arguments);
-  }
-  catch (Error::Syntax_error& e) {
-    Driver::input = tmp_input;
-    Lexer::table = tmp_table;
-    delete arg_list;
-    delete body;
-    throw e;
-  }
+  parse_args(args.size(), arguments);
   for (size_t i = 0, size = args.size(); i < size; ++i) {
     Lexer::table[ args.at(i) ] = arguments.at(i);
   }
-  Driver::input = body;
+  Driver::input = body.val();
   result = expr(true);
-  Driver::input = tmp_input;
-  Lexer::table = tmp_table;
-  delete arg_list;
-  delete body;
 
   return result;
 }
@@ -336,23 +336,14 @@ void Parser::parse_args(size_t args_count, std::vector<double>& fact_args) {
 
 double Parser::call_sys_func(const std::string& name, const std::string& fact_args) {
   Lexer::sys_func_t func = Lexer::sys_func[ name ];
-  std::istream * args = new std::istringstream(fact_args);
-  std::istream * tmp = Driver::input;
-  Driver::input = args;
+  Auto_ptr<std::istream> args(new std::istringstream(fact_args));
+  Restorer<std::istream*> rest(Driver::input);
+  Driver::input = args.val();
   Lexer::curr_tok = Lexer::END;
   std::vector<double> arguments;
   double result = 0;
-  try {
-    parse_args(1, arguments);
-  }
-  catch (Error::Syntax_error& e) {
-    Driver::input = tmp;
-    delete args;
-    throw e;
-  }
+  parse_args(1, arguments);
   result = func(arguments.at(0));
-  Driver::input = tmp;
-  delete args;
   return result;
 }
 
@@ -363,7 +354,7 @@ Lexer::Token_value Lexer::get_token() {
   } while(ch != '\n' && isspace(ch));
 
   switch(ch) {
-    case PRINT: case '\n': ++Driver::line_number; return curr_tok = PRINT;
+    case PRINT: case '\n': return curr_tok = PRINT;
     case PLUS: case MINUS: case MUL: case DIV: case LP: case RP: case ASSIGN: case ARG_SEP:
       return curr_tok = Token_value(ch);
     case '0': case '1': case '2': case '3': case '4':
