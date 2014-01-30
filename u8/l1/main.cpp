@@ -1,66 +1,121 @@
+/*	
+	Напишите модуль, реализующий двусвязный список элементов типа string в стиле
+	модуля Stack из 2.4. Проверьте его на списке названий языков программирования.
+	Реализуйте функцию sort() для этого списка и функцию, изменяющую порядок
+	элементов списка на обратный.
+*/
+
+// TODO 
+// sort function
+
+
 #include <iostream>
 #include <string>
 #include <algorithm>
 
 #define EVER ;;
 
-namespace Stack {
-	void push(const std::string&);
-	std::string pop();
+namespace List {
+	void add(const std::string&);
 
 	void sort();
 	void reverse();
 
-	class Overflow {};
-	class Underflow {};
+	void print();
+	void destroy();
 }
 
 void init() {
-	Stack::push("Python");
-	Stack::push("C++");
-	Stack::push("PHP");
+	List::add("Python");
+	List::add("C++");
+	List::add("PHP");
+	List::add("Assembler");
+	List::add("Pascal");
 }
 
-void printAll() {
-	try {
-		for(EVER) 
-			std::cout << Stack::pop() << std::endl;
-	}
-	catch (Stack::Underflow& ex) {
-		std::cout << "stop" << std::endl;
-	}
-}
 
 int main() {
 	init();
-	printAll();
-	init();
-	Stack::sort();
-	printAll();
+	List::print();
+	std::cout << "_______reverse______\n";
+	List::reverse();
+	List::print();
+	std::cout << "________sort________\n";
+	List::sort();
+	List::print();
+	List::destroy();
 	return 0;
 }
 
-namespace Stack {
-	const int max_size = 200;
-	std::string v[max_size];
-	int top = 0;
+namespace List {
 
-	void push(const std::string& s) {
-		if (top == max_size) throw Overflow();
-		v[top] = s;
-		++top;
+	struct Node {
+	public:
+		Node(const std::string& name, Node* p = 0, Node* n = 0) : v(name), prv(p), nxt(n) {}
+		~Node() {
+			if (nxt) delete nxt;
+		}
+		void add(const std::string& name) {
+			if (nxt) nxt->add(name);
+			else nxt = new Node(name, this);
+		}
+		std::string v;
+		Node* prv;
+		Node* nxt;
+	};
+
+	Node * root = 0;
+
+	void add(const std::string& name) {
+		if (root) root->add(name);
+		else root = new Node(name);
 	}
 
-	std::string pop() {
-		if (top == 0) throw Underflow();
-		return v[--top];
-	}
 
-	void sort() {
-		std::sort(v, v + top);
+	void print() {
+		for (Node* cur = root; cur != 0; cur = cur->nxt) {
+			std::cout << cur->v << "\n";
+		}
 	}
 
 	void reverse() {
-		std::reverse(v, v + top);
+		for (Node *cur = root, *tmp = 0; cur != 0; root = cur, cur = cur->prv ) {
+			tmp = cur->prv;
+			cur->prv = cur->nxt;
+			cur->nxt = tmp;
+		}
+	}
+
+	void sort() {
+		Node * left;
+		Node * rigth;
+		std::string min = (root) ? root->v : "";
+		for (Node* cur = root; cur != 0; cur = rigth) {
+			rigth = cur->nxt;
+			if (cur->nxt != 0) {
+				if ( cur->v > cur->nxt->v ) {
+					rigth->prv = cur->prv;
+					cur->prv = rigth;
+					cur->nxt = rigth->nxt;
+					rigth->nxt = cur;
+				}
+			}
+			left = cur->prv;
+			if (cur->prv != 0) {
+				if (cur->v < cur->prv->v) {
+					cur->prv = left->prv;
+					left->prv = cur; 
+					left->nxt = cur->nxt;
+					cur->nxt = left;
+				}
+			}
+			if (cur->v < min) {
+				root = cur;
+			}
+		}
+	}
+
+	void destroy() {
+		if (root) delete root;
 	}
 }
