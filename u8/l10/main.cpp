@@ -23,11 +23,14 @@ double minus(double a, double b) {
 }
 
 double multiply(double a, double b) {
-	//limit < a * b < limit
-	return a * b;
+	double result = a * b;
+	if (result / a != b) throw loss_of_accuracy();
+	return result;
 }
 
 double divide(double a, double b) {
+	double result = a / b;
+	if (result * b != a) throw loss_of_accuracy();
 	return a / b;
 }
 
