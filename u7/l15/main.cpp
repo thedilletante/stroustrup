@@ -3,6 +3,7 @@
 #include <cctype>
 #include <map>
 
+#define STREAM std::istream
 /* program
 **/
 // the programm
@@ -11,10 +12,10 @@ enum Token_value {
 	PREPROC_DIRECTIVE = '#', WORD,
 	COMMENT = '/', STRING_LITERAL = '"', CHAR = '\'',
 	SEPARATOR = ';', EOL = '\n',
-	NUMBER,	CONTROL, END
+	NUMBER,	CONTROL, END, SPACE = ' '
 };
 
-std::istream *input;
+STREAM *input;
 Token_value curr_tok = END;
 std::string value;
 
@@ -102,10 +103,7 @@ Token_value processDirective() {
 Token_value getToken() {
 	value.clear();
 	char ch;
-	do {
-		if (!input->get(ch)) return curr_tok = END;
-	} while(ch != '\n' && isspace(ch));
-
+	if (!input->get(ch)) return curr_tok = END;
 	switch(ch) {
 		case EOL: case SEPARATOR:
 			value.push_back(ch);
@@ -121,6 +119,12 @@ Token_value getToken() {
 				curr_tok = WORD;
 			else if (isdigit(ch))
 				curr_tok = NUMBER;
+			else if (isspace(ch)) {
+				do {
+					value.push_back(ch);
+				}
+				while(input->get(ch) && isspace(ch));
+			}
 			else {
 				value.push_back(ch);
 				return curr_tok = CONTROL;
@@ -196,14 +200,15 @@ int main() {
 				break;
 			case COMMENT: break; // do not write it to out
 			case STRING_LITERAL:
-				//std::cout << "\"" << value << "\"";
+				std::cout << "\"" << value << "\"";
 				break;
 			case CHAR:
-				//std::cout << "'" << value << "'";
+				std::cout << "'" << value << "'";
 				break;
 			case SEPARATOR: case EOL: case NUMBER: case CONTROL: case END:
-				//std::cout << value;
+				std::cout << value;
 				break;
+			case SPACE: std::cout << SPACE; break;
 			default: break; // nothing to do
 		}
 	}
