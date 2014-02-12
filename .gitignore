@@ -13,3 +13,12 @@
 *.a
 
 *.out
+
+# VC ignore
+*.vcxproj*
+*.sdf
+*.sln
+*.suo
+*.opensdf
+*.ipch
+*Debug/
