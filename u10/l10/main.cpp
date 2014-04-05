@@ -1,3 +1,8 @@
+/*
+Модифицируйте класс Intset во множесто узлов Node,
+где Node - определяемая вами структура.
+*/
+
 #include <iostream>
 #include <cstdlib>
 #include <cstring>
