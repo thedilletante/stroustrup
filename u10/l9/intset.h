@@ -32,7 +32,7 @@ inline std::ostream& operator<<(std::ostream& os, const Intset& rhs) {
 	os << "[";
 	typedef std::set<int>::const_iterator iter;
 	bool first = true;
-	for (iter i = rhs.c.cbegin(), end = rhs.c.cend(); i != end; ++i ) {
+	for (iter i = rhs.c.begin(), end = rhs.c.end(); i != end; ++i ) {
 		if ( first ) first = false;
 		else os << ",";
 		os << *i;
@@ -40,4 +40,4 @@ inline std::ostream& operator<<(std::ostream& os, const Intset& rhs) {
 	return os << "]";
 }
 
-#endif THEDILLETANTE_INTSET
+#endif // THEDILLETANTE_INTSET

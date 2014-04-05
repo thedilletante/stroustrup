@@ -2,7 +2,7 @@
 
 Intset& Intset::operator+=( const Intset& rhs ) {
 	typedef std::set< Node >::const_iterator iter;
-	for ( iter i = rhs.c.cbegin(), end = rhs.c.cend(); i != end; ++i )
+	for ( iter i = rhs.c.begin(), end = rhs.c.end(); i != end; ++i )
 		c.insert( *i );
 	return *this;
 }
@@ -18,7 +18,7 @@ Intset& Intset::operator*=( const Intset& rhs ) {
 
 Intset& Intset::operator-=( const Intset& rhs ) {
 	typedef std::set< Node >::const_iterator iter;
-	for ( iter i = rhs.c.cbegin(), end = rhs.c.cend(); i != end; ++i )
+	for ( iter i = rhs.c.begin(), end = rhs.c.end(); i != end; ++i )
 		c.erase( *i );
 	return *this;
 }
