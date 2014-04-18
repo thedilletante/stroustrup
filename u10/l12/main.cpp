@@ -16,6 +16,7 @@ int main()
 
     while(q.size())
         std::cout << q.dequeue();
+    std::cout << q.dequeue();
 
     return 0;
 
