@@ -30,6 +30,8 @@ int main() {
 	SHOW_SIZE(double);
 	SHOW_SIZE(long double);
 
+    SHOW_SIZE(int *);
+
 	SHOW_SIZE(Bool);
 	SHOW_SIZE(Days);
 	SHOW_SIZE(Month);
