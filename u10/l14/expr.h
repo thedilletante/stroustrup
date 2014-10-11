@@ -1,20 +1,28 @@
 #ifndef EXPR_CLASS
 #define EXPR_CLASS
 
-
-// implement struct - tree of nodes
-// node - abstract
-//  constant
-//  operation
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <map>
+
+#ifdef DBG
+#define DEBUG(A) std::cout << A << std::endl
+#else
+#define DEBUG(A)
+#endif
+
+std::map<std::string, int> sym_table;
 
 class Expr
 {
-//...
 public:
-    class SyntaxError {};
+    struct SyntaxError
+    {
+        int pos;
+        SyntaxError(int _pos) : pos(_pos) {}
+        int position() const { return pos; }
+    };
     class DivizionByZero {};
 
     Expr(const char *);
@@ -26,14 +34,16 @@ private:
     
     enum Token_type
     {
-        END, CONST,
+        END, CONST, NAME,
         PLUS = '+', MINUS = '-', MULT = '*', DIV = '/',
-        LP = '(', RP = ')'
+        EQ = '=', LP = '(', RP = ')', 
     };
 
     class Node;
     class Constant;
     class Operation;
+    class Variable;
+    class Assignment;
 
     Node *root;
 
@@ -46,6 +56,7 @@ class Expr::Node
 public:
     virtual int value() = 0;
     virtual const std::string char_rep() = 0;
+    virtual ~Node() {}
 
 protected:
     int evaluate(int lh, int rh, char op)
@@ -60,7 +71,7 @@ protected:
                 if (rh == 0) throw DivizionByZero(); 
                 result /= rh;
                 break;
-            default: throw SyntaxError();
+            default: throw SyntaxError(0);
         }
         return result;
     }
@@ -84,6 +95,11 @@ public:
         std::stringstream s;
         s << val;
         return s.str();
+    }
+
+    virtual ~Constant()
+    {
+        DEBUG("Delete constant");
     }
 private:
     int val;
@@ -109,18 +125,90 @@ public:
         return (char)LP + l->char_rep() + op + r->char_rep() + (char)RP;
     }
 
+    virtual ~Operation()
+    {
+        DEBUG("Delete operation");
+        delete l;
+        delete r;
+    }
+
 private:
     Node *l;
     Node *r;
     char op;
 };
 
+class Expr::Variable : public Expr::Node
+{
+public:
+    Variable(const std::string &_name)
+        : name(_name), val(sym_table[_name])
+    {}
 
+    virtual int value()
+    {
+        return val;
+    }
+
+    virtual const std::string char_rep()
+    {
+        return name;
+    }
+
+    void assign(int value)
+    {
+        val = value;
+    }
+
+    virtual ~Variable()
+    {
+        DEBUG("Delete variable");
+    }
+
+private:
+    const std::string name;
+    int &val;
+};
+
+class Expr::Assignment : public Expr::Node
+{
+public:
+    Assignment(Variable *name, Node *expr)
+        : n(name), e(expr)
+    {}
+
+    virtual int value()
+    {
+        n->assign(e->value());
+        return n->value();
+    }
+
+    virtual const std::string char_rep()
+    {
+        return ( '(' + n->char_rep() + "=" + e->char_rep() + ')' );
+    }
+
+    virtual ~Assignment()
+    {
+        DEBUG("Delete assignment");
+        delete n;
+        delete e;
+    }
+
+
+private:
+    Variable *n;
+    Node *e;
+};
 
 class Expr::ExprParser
 {
 public:
     ExprParser(const char *);
+    ~ExprParser()
+    {
+        delete in;
+    }
     Node* parse();
 
 private:
@@ -130,21 +218,25 @@ private:
     Token_type getToken();
     void skip();
     int const_value;
+    std::string string_rep;
+    size_t cur_pos;
 
     std::istream *in;
     Token_type cur_tok;
 };
 
 Expr::ExprParser::ExprParser(const char * str)
+    : in(new std::stringstream(str)), cur_tok(END),
+      const_value(0), cur_pos(0)
 {
-    in = new std::stringstream(str);
-    cur_tok = END;
-    const_value = 0;
 }
 
 Expr::Node *Expr::ExprParser::parse()
 {
-    return expr();
+    Node *node = expr();
+    if (cur_tok != END)
+        throw SyntaxError(cur_pos);
+    return node;
 }
 
 // handle PLUS and MINUS
@@ -197,23 +289,39 @@ Expr::Node *Expr::ExprParser::term()
 Expr::Node *Expr::ExprParser::prim()
 {
     Node *root = NULL;
+    Token_type tmp = END;
     switch(getToken())
     {
         case CONST:
             getToken();
             root = new Constant(const_value);
             break;
+        case NAME:
+            {
+                Variable *var = new Variable(string_rep);
+                if (getToken() == EQ)
+                {
+                    root = new Assignment(var, expr());
+                    getToken();
+                }
+                else
+                {
+                    root = var;
+                }
+            }
+            break;
         case MINUS:
-            getToken();
-            root = new Constant(-const_value);
+        case PLUS: // for symmetry :)
+            tmp = cur_tok;
+            root = new Operation(new Constant(0), prim(), tmp);
             break;
         case LP:
             root = expr();
-            if (cur_tok != RP) throw SyntaxError();
+            if (cur_tok != RP) throw SyntaxError(cur_pos);
             getToken();
             break;
         default:
-            throw SyntaxError();
+            throw SyntaxError(cur_pos);
     }
     return root;
 }
@@ -221,7 +329,7 @@ Expr::Node *Expr::ExprParser::prim()
 void Expr::ExprParser::skip()
 {
     char ch;
-    while(in->get(ch) && isspace(ch));
+    while(in->get(ch) && isspace(ch)) ++cur_pos;
     in->putback(ch);
 }
 
@@ -229,7 +337,8 @@ Expr::Token_type Expr::ExprParser::getToken()
 {
     skip();
     char ch;
-    if (!in->get(ch)) return END;
+    if (!in->get(ch)) return cur_tok = END;
+    ++cur_pos;
 
     switch(ch)
     {
@@ -239,13 +348,36 @@ Expr::Token_type Expr::ExprParser::getToken()
         case DIV  :
         case LP   :
         case RP   :
+        case EQ   :
             return cur_tok = Token_type(ch);
         case '0': case '1': case '2': case '3': case '4':
         case '5': case '6': case '7': case '8': case '9':
-            in->putback(ch);
-            (*in) >> const_value;
+            const_value = 0;
+            do
+            {
+                const_value *= 10;
+                const_value += (int)(ch - '0');
+                ++cur_pos;
+            }
+            while (in->get(ch) && ::isdigit(ch));
+            if (ch) in->putback(ch);
+            --cur_pos;
             return cur_tok = CONST;
-        default: throw SyntaxError();
+        default:
+            if (::isalpha(ch))
+            {
+                string_rep.clear();
+                do
+                {
+                    ++cur_pos;
+                    string_rep += ch;
+                }
+                while (in->get(ch) && ::isalnum(ch));
+                if (ch) in->putback(ch);
+                --cur_pos;
+                return cur_tok = NAME;
+            }
+            throw SyntaxError(cur_pos);
     }
 }
 
@@ -256,7 +388,11 @@ Expr::Expr(const char * str)
     ExprParser parser(str);
     root = parser.parse(); 
 }
-Expr::~Expr(){}
+Expr::~Expr()
+{
+    DEBUG("Delete expression");
+    delete root;
+}
 int Expr::eval()
 {
     return root->value();

@@ -1,0 +1,50 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+CONST	expr.h	/^        END, CONST,$/;"	e	enum:Expr::Token_type
+Constant	expr.h	/^    Constant(int value)$/;"	f	class:Expr::Constant
+Constant	expr.h	/^class Expr::Constant : public Expr::Node$/;"	c	class:Expr
+DIV	expr.h	/^        PLUS = '+', MINUS = '-', MULT = '*', DIV = '\/',$/;"	e	enum:Expr::Token_type
+DivizionByZero	expr.h	/^    class DivizionByZero {};$/;"	c	class:Expr
+END	expr.h	/^        END, CONST,$/;"	e	enum:Expr::Token_type
+EXPR_CLASS	expr.h	2;"	d
+Expr	expr.h	/^Expr::Expr(const char * str)$/;"	f	class:Expr
+Expr	expr.h	/^class Expr$/;"	c
+ExprParser	expr.h	/^Expr::ExprParser::ExprParser(const char * str)$/;"	f	class:Expr::ExprParser
+ExprParser	expr.h	/^class Expr::ExprParser$/;"	c	class:Expr
+LP	expr.h	/^        LP = '(', RP = ')'$/;"	e	enum:Expr::Token_type
+MINUS	expr.h	/^        PLUS = '+', MINUS = '-', MULT = '*', DIV = '\/',$/;"	e	enum:Expr::Token_type
+MULT	expr.h	/^        PLUS = '+', MINUS = '-', MULT = '*', DIV = '\/',$/;"	e	enum:Expr::Token_type
+Node	expr.h	/^class Expr::Node$/;"	c	class:Expr
+Operation	expr.h	/^    Operation(Node *left, Node *right, Token_type tok)$/;"	f	class:Expr::Operation
+Operation	expr.h	/^class Expr::Operation : public Expr::Node$/;"	c	class:Expr
+PLUS	expr.h	/^        PLUS = '+', MINUS = '-', MULT = '*', DIV = '\/',$/;"	e	enum:Expr::Token_type
+RP	expr.h	/^        LP = '(', RP = ')'$/;"	e	enum:Expr::Token_type
+SyntaxError	expr.h	/^    class SyntaxError {};$/;"	c	class:Expr
+Token_type	expr.h	/^    enum Token_type$/;"	g	class:Expr
+char_rep	expr.h	/^    virtual const std::string char_rep()$/;"	f	class:Expr::Constant
+char_rep	expr.h	/^    virtual const std::string char_rep()$/;"	f	class:Expr::Operation
+const_value	expr.h	/^    int const_value;$/;"	m	class:Expr::ExprParser
+cur_tok	expr.h	/^    Token_type cur_tok;$/;"	m	class:Expr::ExprParser
+eval	expr.h	/^int Expr::eval()$/;"	f	class:Expr
+evaluate	expr.h	/^    int evaluate(int lh, int rh, char op)$/;"	f	class:Expr::Node
+expr	expr.h	/^Expr::Node *Expr::ExprParser::expr()$/;"	f	class:Expr::ExprParser
+getToken	expr.h	/^Expr::Token_type Expr::ExprParser::getToken()$/;"	f	class:Expr::ExprParser
+in	expr.h	/^    std::istream *in;$/;"	m	class:Expr::ExprParser
+l	expr.h	/^    Node *l;$/;"	m	class:Expr::Operation
+main	main.cpp	/^int main(int argc, char *argv[])$/;"	f
+op	expr.h	/^    char op;$/;"	m	class:Expr::Operation
+parse	expr.h	/^Expr::Node *Expr::ExprParser::parse()$/;"	f	class:Expr::ExprParser
+prim	expr.h	/^Expr::Node *Expr::ExprParser::prim()$/;"	f	class:Expr::ExprParser
+print	expr.h	/^void Expr::print()$/;"	f	class:Expr
+r	expr.h	/^    Node *r;$/;"	m	class:Expr::Operation
+root	expr.h	/^    Node *root;$/;"	m	class:Expr
+skip	expr.h	/^void Expr::ExprParser::skip()$/;"	f	class:Expr::ExprParser
+term	expr.h	/^Expr::Node *Expr::ExprParser::term()$/;"	f	class:Expr::ExprParser
+val	expr.h	/^    int val;$/;"	m	class:Expr::Constant
+value	expr.h	/^    virtual int value()$/;"	f	class:Expr::Constant
+value	expr.h	/^    virtual int value()$/;"	f	class:Expr::Operation
+~Expr	expr.h	/^Expr::~Expr(){}$/;"	f	class:Expr
