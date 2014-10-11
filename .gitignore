@@ -22,3 +22,6 @@
 *.opensdf
 *.ipch
 *Debug/
+
+*.log
+*.tmp

@@ -2,24 +2,6 @@
 #include "my_string.h"
 
 
-String &String::operator+=(const String &x)
-{
-    cat(x.rep->s, x.size());
-    return *this;
-}
-
-String &String::operator+=(const char *s)
-{
-    int n = ::strlen(s);
-    cat(s, n);
-    return *this;
-}
-
-::std::ostream &operator<<(::std::ostream &os, const String &s)
-{
-    return os << s.rep->s;
-}
-
 ::std::istream &operator>>(::std::istream &is, String &s)
 {
     char ch;

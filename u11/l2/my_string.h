@@ -299,20 +299,36 @@ inline bool operator!=(const String &x, const String &y)
     return !(x == y);
 }
 
+inline String &String::operator+=(const String &x)
+{
+    cat(x.rep->s, x.size());
+    return *this;
+}
+
+inline String &String::operator+=(const char *s)
+{
+    cat(s, ::strlen(s));
+    return *this;
+}
+
+inline ::std::ostream &operator<<(::std::ostream &os, const String &s)
+{
+    return os << s.rep->s;
+}
+
 
 
 
 inline String operator+(const String &x, const String &y)
 {
     String res = x;
-    res += y;
-    return res;
+    return res += y;
 }
+
 inline String operator+(const String &x, const char *s)
 {
     String res = x;
-    res += s;
-    return res;
+    return res += s;
 }
 
 #endif
