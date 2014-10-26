@@ -5,6 +5,14 @@
  * что было сделано для класса String.
  */
 
+#include <iostream>
+#include "big_int.h"
+
 int main()
 {
+    big_int a(437457723);
+    for (int i = 0; i < 1000000; ++i)
+        a += 437548665;
+    std::cout << a << std::endl;
+    return 0;
 }
