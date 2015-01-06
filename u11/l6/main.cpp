@@ -61,6 +61,34 @@ struct big_int::IRep
     // constuctors and destructors do not care about ref_cnt
     int ref_cnt;
 
+
+    IRep *get_own_copy()
+    {
+        IRep *ret_val = NULL;
+        
+        if (1 == this->ref_cnt)
+        {
+            ret_val = this;
+        }
+        else
+        {
+            try
+            {
+                ret_val = new IRep();
+            }
+            catch (::std::bad_alloc *ba)
+            {
+                assert(false && "how avoid bad_alloc in constructors???");
+            }
+
+            ret_val->is_positive = this->is_positive;
+            ret_val->digits = this->digits;
+
+            --this->ref_cnt;
+            ret_val->ref_cnt = 1;
+        }
+        return ret_val;
+    }
 private:
     // non-copy
     IRep(const IRep &);
