@@ -1,5 +1,4 @@
 #include <iostream>
-#define _DBG_MODE_
 #include "my_string.h"
 
 String f(String a, String b)
@@ -38,5 +37,6 @@ int main()
     x[0] = '!';
     if (x == z) std::cout << "write failed!\n";
     std::cout << "exit: " << x << ' ' << y << ' ' << z << '\n';
+    
     return 0;
 }

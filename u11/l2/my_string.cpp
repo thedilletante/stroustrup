@@ -1,4 +1,3 @@
-#define _DBG_MODE_
 #include "my_string.h"
 
 

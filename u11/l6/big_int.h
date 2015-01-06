@@ -38,6 +38,11 @@ public:
     //big_int &operator%=(const big_int &bi);
     big_int &operator+=(int value);
 
+    friend bool operator==(const big_int &li, int ri);
+    friend bool operator!=(const big_int &li, int ri);
+    friend bool operator>(const big_int &li, int ri);
+    friend bool operator<(const big_int &li, int ri);
+
     friend bool operator==(const big_int &li, const big_int &ri);
     friend bool operator!=(const big_int &li, const big_int &ri);
     friend bool operator>(const big_int &li, const big_int &ri);

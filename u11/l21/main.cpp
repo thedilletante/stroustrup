@@ -41,5 +41,6 @@ int main()
     std::cout << ::pow(2, 3) << std::endl;
     Index i(5);
     std::cout << 2**i << std::endl;
+    std::cout << 5**i << std::endl;
     return 0;
 }
