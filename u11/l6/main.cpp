@@ -43,7 +43,20 @@ public:
     big_int &operator=(const big_int &);
 
     ~big_int();
+
+
+
+    friend ::std::ostream &operator<<(::std::ostream &, const big_int &);
     // comparators
+    
+    friend bool operator==(const big_int &, const big_int &);
+    friend bool operator!=(const big_int &, const big_int &);
+
+    friend bool operator>(const big_int &, const big_int &);
+    friend bool operator>=(const big_int &, const big_int &);
+
+    friend bool operator<(const big_int &, const big_int &);
+    friend bool operator<=(const big_int &, const big_int &);
     // ariphmetic
 private:
     struct IRep;
@@ -180,8 +193,47 @@ inline big_int::~big_int()
     }
 }
 
+inline ::std::ostream &operator<<(::std::ostream &os, const big_int &i)
+{
+    if (false == i.rep->is_positive)
+    {
+        os << '-';
+    }
+    for (int d = i.rep->digits.size() - 1; d >= 0; --d)
+    {
+        os << i.rep->digits[d];
+    }
+    return os;
+}
 
+inline bool operator==(const big_int &l, const big_int &r)
+{
+    bool ret_val = true;
 
+    if ((l.rep->is_positive == r.rep->is_positive) &&
+        (l.rep->digits.size() == r.rep->digits.size()))
+    {
+        for (int i = 0, end = l.rep->digits.size(); i < end; ++i)
+        {
+            if (l.rep->digits[i] != r.rep->digits[i])
+            {
+                ret_val = false;
+                break;
+            }
+        }
+    }
+    else
+    {
+        ret_val = false;
+    }
+
+    return ret_val;
+}
+
+inline bool operator!=(const big_int &l, const big_int &r)
+{
+    return !(l == r);
+}
 
 void test_create_delete()
 {
@@ -193,7 +245,17 @@ void test_create_delete()
 }
 
 
+void test_compare()
+{
+    big_int a(654665466);
+    big_int b(789797978);
+    std::cout << "a = " << a << std::endl;
+    std::cout << "b = " << b << std::endl;
+    std::cout << "a == b = " << (a == b) << std::endl;
+    std::cout << "a != b = " << (a != b) << std::endl;
+}
+
 int main()
 {
-    test_create_delete();
+    test_compare();
 }
