@@ -40,7 +40,10 @@ public:
     // constructors & desctructor
     big_int(int value = 0);
     big_int(const big_int &);
-    big_int &operator=(const big_int &);
+    big_int &operator=(big_int);
+
+
+    friend void swap(big_int &r, big_int &l);
 
     ~big_int();
 
@@ -161,32 +164,19 @@ inline big_int::big_int(const big_int &copy)
     ++rep->ref_cnt;
 }
 
-inline big_int &big_int::operator=(const big_int &copy)
+inline big_int &big_int::operator=(big_int copy)
 {
     DBG("test");
-    assert((NULL != copy.rep) && "copy object should be already created");
-    // how avoid of self-equls validation ???
-    if (this != &copy)
-    {
-        // destroy own object
-        assert((NULL != rep) && "we destroy more objects than created");
-        if (0 == --rep->ref_cnt)
-        {
-           delete rep;
-           rep = NULL;
-        }
-        rep = copy.rep;
-        ++rep->ref_cnt;
-        // copy from argument
-    }
+    swap(*this, copy);
     return *this;
 }
 
 inline big_int::~big_int()
 {
     DBG("test");
-    assert((NULL != rep) && "we destroy more objects than create");    
-    if (0 == --rep->ref_cnt)
+    //assert((NULL != rep) && "we destroy more objects than create");    
+    if ((rep != NULL) && //because of swap method
+        (0 == --rep->ref_cnt))
     {
         delete rep;
         rep = NULL;
@@ -228,6 +218,15 @@ inline bool operator==(const big_int &l, const big_int &r)
     }
 
     return ret_val;
+}
+
+inline void swap(big_int &r, big_int &l)
+{
+    // enable ADL
+    using std::swap;
+
+    DBG("test");
+    swap(r.rep, l.rep);
 }
 
 inline bool operator!=(const big_int &l, const big_int &r)
