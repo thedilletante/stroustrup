@@ -6,255 +6,92 @@
  */
 
 #include <iostream>
-#include <vector>
-#include <assert.h>
-#include <new>
-//#include "big_int.h"
+#include "helper.h"
+#include "big_int.h"
 
-#ifdef _DBG_MODE_
-#include <cstdio>
-#define DBG(format, ...) \
-    { \
-        printf("DBG(%s,%s:%d): ", __FUNCTION__, __FILE__, __LINE__); \
-        printf(format, ## __VA_ARGS__); \
-        printf("\n"); \
-    }
-#else
-#define DBG(format, ...)
-#endif
-/*int main()
-{
-    big_int a(437457723);
-    for (int i = 0; i < 10000000; ++i)
-        a += 437548665;
-    std::cout << a << std::endl;
-    return 0;
-}*/
-
-// - представление для чисел
-// - определить операции сравнения для чисел
-
-class big_int
-{
-public:
-    // constructors & desctructor
-    big_int(int value = 0);
-    big_int(const big_int &);
-    big_int &operator=(big_int);
-
-
-    friend void swap(big_int &r, big_int &l);
-
-    ~big_int();
-
-
-
-    friend ::std::ostream &operator<<(::std::ostream &, const big_int &);
-    // comparators
-    
-    friend bool operator==(const big_int &, const big_int &);
-    friend bool operator!=(const big_int &, const big_int &);
-
-    friend bool operator>(const big_int &, const big_int &);
-    friend bool operator>=(const big_int &, const big_int &);
-
-    friend bool operator<(const big_int &, const big_int &);
-    friend bool operator<=(const big_int &, const big_int &);
-    // ariphmetic
-private:
-    struct IRep;
-
-    IRep *rep;
-};
-
-
-struct big_int::IRep
-{
-    bool is_positive;
-    ::std::vector<int> digits;
-    IRep(int value = 0);
-
-    // constuctors and destructors do not care about ref_cnt
-    int ref_cnt;
-
-
-    IRep *get_own_copy()
-    {
-        IRep *ret_val = NULL;
-        
-        if (1 == this->ref_cnt)
-        {
-            ret_val = this;
-        }
-        else
-        {
-            try
-            {
-                ret_val = new IRep();
-            }
-            catch (::std::bad_alloc *ba)
-            {
-                assert(false && "how avoid bad_alloc in constructors???");
-            }
-
-            ret_val->is_positive = this->is_positive;
-            ret_val->digits = this->digits;
-
-            --this->ref_cnt;
-            ret_val->ref_cnt = 1;
-        }
-        return ret_val;
-    }
-private:
-    // non-copy
-    IRep(const IRep &);
-    IRep &operator=(const IRep &);
-
-    static const int BASE = 1000;
-
-
-    void set_sign(int value);
-    void normalize_int(int value);
-};
-
-inline big_int::IRep::IRep(int value)
-    : is_positive(true)
-{
-    DBG("test");
-    set_sign(value);
-    normalize_int(value);
-}
-
-inline void big_int::IRep::set_sign(int value)
-{
-    DBG("test");
-    is_positive = (value >= 0);
-}
-
-inline void big_int::IRep::normalize_int(int value)
-{
-    DBG("test");
-    for (int v = (value >= 0) ? value : -value; v != 0; v /= BASE)
-    {
-        digits.push_back(v % BASE);
-    }
-}
-
-
-inline big_int::big_int(int value)
-{
-    DBG("test");
-    try
-    {
-        rep = new IRep(value);
-    }
-    catch (::std::bad_alloc &ba)
-    {
-        // the question is how report about error in constructor
-        assert(false && "not enough memory in constructor");
-    }
-    rep->ref_cnt = 1;
-}
-
-inline big_int::big_int(const big_int &copy)
-{
-    DBG("test");
-    assert((NULL != copy.rep) && "copy object should be already created");
-    rep = copy.rep;
-    ++rep->ref_cnt;
-}
-
-inline big_int &big_int::operator=(big_int copy)
-{
-    DBG("test");
-    swap(*this, copy);
-    return *this;
-}
-
-inline big_int::~big_int()
-{
-    DBG("test");
-    //assert((NULL != rep) && "we destroy more objects than create");    
-    if ((rep != NULL) && //because of swap method
-        (0 == --rep->ref_cnt))
-    {
-        delete rep;
-        rep = NULL;
-    }
-}
-
-inline ::std::ostream &operator<<(::std::ostream &os, const big_int &i)
-{
-    if (false == i.rep->is_positive)
-    {
-        os << '-';
-    }
-    for (int d = i.rep->digits.size() - 1; d >= 0; --d)
-    {
-        os << i.rep->digits[d];
-    }
-    return os;
-}
-
-inline bool operator==(const big_int &l, const big_int &r)
-{
-    bool ret_val = true;
-
-    if ((l.rep->is_positive == r.rep->is_positive) &&
-        (l.rep->digits.size() == r.rep->digits.size()))
-    {
-        for (int i = 0, end = l.rep->digits.size(); i < end; ++i)
-        {
-            if (l.rep->digits[i] != r.rep->digits[i])
-            {
-                ret_val = false;
-                break;
-            }
-        }
-    }
-    else
-    {
-        ret_val = false;
-    }
-
-    return ret_val;
-}
-
-inline void swap(big_int &r, big_int &l)
-{
-    // enable ADL
-    using std::swap;
-
-    DBG("test");
-    swap(r.rep, l.rep);
-}
-
-inline bool operator!=(const big_int &l, const big_int &r)
-{
-    return !(l == r);
-}
 
 void test_create_delete()
 {
-    big_int a(2345265436);
+    DBG("%s start", __FUNCTION__);
+    big_int a(-23450265);
     big_int b(a);
     big_int c;
     c = b;
-    DBG("test");
+    {
+        big_int d = c;
+    }
+    std::cout << c << std::endl;
+    std::cout << 'a' << std::endl;
+    DBG("%s end", __FUNCTION__);
 }
 
 
-void test_compare()
+void test_compare(const big_int &a, const big_int &b)
 {
-    big_int a(654665466);
-    big_int b(789797978);
+    DBG("%s start", __FUNCTION__);
     std::cout << "a = " << a << std::endl;
     std::cout << "b = " << b << std::endl;
     std::cout << "a == b = " << (a == b) << std::endl;
     std::cout << "a != b = " << (a != b) << std::endl;
+    std::cout << "a > b = " << (a > b) << std::endl;
+    std::cout << "a < b = " << (a < b) << std::endl;
+    std::cout << "a >= b = " << (a >= b) << std::endl;
+    std::cout << "a <= b = " << (a <= b) << std::endl;
+    DBG("%s end", __FUNCTION__);
+}
+
+
+void test_add()
+{
+    big_int a(3534545);
+    a += 99669234;
+    std::cout << a << std::endl;
+    a -= 2342355;
+    std::cout << a << std::endl;
+    a += (-43566);
+    std::cout << a << std::endl;
+
+    big_int b(234);
+    b -= (24564767);
+    std::cout << b << std::endl;
+    std::cout << "a + b" << a + b << std::endl;
+}
+
+void test_add_and_sub(const big_int &a, const big_int &b)
+{
+    DBG("%s start", __FUNCTION__);
+    std::cout << "a = " << a << std::endl;
+    std::cout << "b = " << b << std::endl;
+    std::cout << "a + b = " << a + b << std::endl;
+    std::cout << "a = " << a << std::endl;
+    std::cout << "b = " << b << std::endl;
+    std::cout << "a - b = " << a - b << std::endl;
+    std::cout << "a = " << a << std::endl;
+    std::cout << "b = " << b << std::endl;
+    std::cout << "b + a = " << b + a << std::endl;
+    std::cout << "a = " << a << std::endl;
+    std::cout << "b = " << b << std::endl;
+    std::cout << "b - a = " << b - a << std::endl;
+    std::cout << "a = " << a << std::endl;
+    std::cout << "b = " << b << std::endl;
+    DBG("%s end", __FUNCTION__);
 }
 
 int main()
 {
-    test_compare();
+//    test_create_delete();
+//    test_compare(234123,22345);
+//    test_compare(234123,-22345);
+//    test_compare(-234123,22345);
+//    test_compare(2340123,220034);
+//    test_compare(2340123,-220034);
+//    test_compare(2340123,2340123);
+
+    //test_add();
+
+
+    test_add_and_sub(26983576, 23595);
+    test_add_and_sub(764576, 100000000);
+    test_add_and_sub(56797993, 56797993);
+    test_add_and_sub(34654, -389739);
 }
