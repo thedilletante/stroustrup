@@ -4,8 +4,9 @@
  * вызова mypow(2, I)
  */
 
-#include <cmath>
-#include <iostream>
+#include <cmath> // pow()
+#include <cstdlib> // atoi()
+#include <iostream> // streams
 
 class Iptr
 {
@@ -36,11 +37,27 @@ private:
     int ind;
 };
 
-int main()
+void usage()
 {
-    std::cout << ::pow(2, 3) << std::endl;
-    Index i(5);
-    std::cout << 2**i << std::endl;
-    std::cout << 5**i << std::endl;
+    std::cout << "usage: program base power" << std::endl;
+}
+
+int main(int argc, char *argv[])
+{
+    if (argc < 3)
+    {
+        usage();
+    }
+    else
+    {
+        int base = ::atoi(argv[1]);
+        int power = ::atoi(argv[2]);
+
+        std::cout << "base = " << base
+                  << ", power = " << power << std::endl;
+
+        Index i(power);
+        std::cout << base << "**" << power << " = " << base ** i << std::endl;
+    }
     return 0;
 }
