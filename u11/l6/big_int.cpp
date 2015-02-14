@@ -53,12 +53,6 @@ void swap(big_int &l, big_int &r)
     l.swap(r);
 }
 
-big_int &big_int::operator-()
-{
-    do_cow();
-    rep->is_positive = !(rep->is_positive);
-    return *this;
-}
 void big_int::do_cow()
 {
     DBG("Change big_int %p ref_cnt %d", rep, rep->ref_cnt);
@@ -210,34 +204,73 @@ big_int &big_int::operator+=(const big_int &value)
     return *this;
 }
 
-big_int &big_int::operator-=(big_int value)
+big_int &big_int::operator-=(const big_int &value)
 {
     return *this += (-value);
 }
 
-big_int &big_int::operator *=(const big_int &value)
+big_int big_int::operator*(const big_int &value) const
 {
-    if (1 != value)
+    big_int ret_val;
+
+    if ((0 == value) ||
+        (0 == *this))
     {
-        do_cow();
-        if (0 == value)
-        {
-            rep->digits.clear();
-            rep->is_positive = true;
-        }
-        else
-        {
-            const BI_Impl::ivector_t &value_digits = value.rep->digits;
-            int position = 0;
-            ::std::for_each(value_digits.begin(),
-                            value_digits.end(),
-                            [&position, this](int digit)
-                            {
-                                rep->mult(digit, position);
-                            });
-        }
+        ret_val = 0;
     }
-    return *this;
+    else if (1 == *this)
+    {
+        ret_val = value;
+    }
+    else if (-1 == *this)
+    {
+        ret_val = -value;
+    }
+    else if (1 == value)
+    {
+        ret_val = *this;
+    }
+    else if (-1 == value)
+    {
+        ret_val = -(*this);
+    }
+    else
+    {
+        const BI_Impl::ivector_t &this_digits = rep->digits;
+        const BI_Impl::ivector_t &value_digits = value.rep->digits;
+        int this_position = 0;
+        for (BI_Impl::ivector_citer_t this_iter = this_digits.begin(),
+                                      this_end = this_digits.end();
+             this_iter != this_end;
+             ++this_iter)
+        {
+            int value_position = 0;
+            for (BI_Impl::ivector_citer_t value_iter = value_digits.begin(),
+                                          value_end = value_digits.end();
+                 value_iter != value_end;
+                 ++value_iter)
+            {
+                int res = *this_iter * *value_iter;
+                ret_val.rep->add(res, this_position + value_position);
+                ++value_position;
+            }
+            ++this_position;
+        }
+
+        ret_val.rep->is_positive = (rep->is_positive == value.rep->is_positive);
+    }
+
+
+
+    return ret_val;
+}
+
+big_int big_int::operator-() const
+{
+    big_int ret_val(*this);
+    ret_val.do_cow();
+    ret_val.rep->is_positive = !ret_val.rep->is_positive;
+    return ret_val;
 }
 
 // ariphmetic END

@@ -21,11 +21,9 @@ public:
     BI_Impl(int value = 0); // done
     BI_Impl(const ivector_t &_digits, bool _is_positive = true); // done
 
-
     // ariphmetic
     void add(int value, int position); // done
     void sub(int value, int position); // done
-    void mult(int value, int position);
 
     void cut_tail();
     void dbg_dump() const;

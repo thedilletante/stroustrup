@@ -87,23 +87,6 @@ void big_int::BI_Impl::sub(int value, int position)
     DBG("End of sub and val %d", digits[position]);
 }
 
-void big_int::BI_Impl::mult(int value, int position)
-{
-    assert((position >= 0) && "position should be greater or equal 0");
-    assert((value >= 0) && "value should be greater or equal 0");
-    assert((value < BIG_INT_IMPL_BASE) && "value should be smaller then BASE");
-
-    // we already know, that we are greater then value
-    size_t size = digits.size();
-    assert((position < size) && ("position must be smaller then size in sub"));
-
-
-
-
-
-}
-
-
 void big_int::BI_Impl::dbg_dump() const
 {
     DBG("dump start");

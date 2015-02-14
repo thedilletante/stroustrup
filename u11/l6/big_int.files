@@ -1,3 +1,6 @@
 big_int.cpp
 big_int.h
 main.cpp
+BI_Impl.h
+BI_Impl.cpp
+helper.h
