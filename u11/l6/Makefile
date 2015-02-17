@@ -4,10 +4,10 @@ FLAGS=-std=c++11 -g
 big_int: big_int.o BI_Impl.o main.o
 	clang++ $(FLAGS) big_int.o BI_Impl.o main.o	-o big_int
 
-big_int.o: big_int.h big_int.cpp
+big_int.o: big_int.h big_int.cpp BI_Impl.h
 	clang++ $(FLAGS) -c big_int.cpp
 
-BI_Impl.o: BI_Impl.h BI_Impl.cpp big_int.h
+BI_Impl.o: BI_Impl.h BI_Impl.cpp
 	clang++ $(FLAGS) -c BI_Impl.cpp
 
 main.o: main.cpp big_int.h
